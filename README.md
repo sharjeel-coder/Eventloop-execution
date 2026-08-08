@@ -323,6 +323,213 @@ Lowest priority
 
 ---
 
-# Author
+# EventEmitter in Node.js
 
-Sharjeel Khalid
+## What is an EventEmitter?
+
+An EventEmitter is a class provided by Node.js through the built-in `events` module.
+
+It is used to build event-driven applications by allowing objects to:
+
+- Emit (trigger) events.
+- Listen for events.
+- Execute callback functions when an event occurs.
+
+---
+
+## Importing EventEmitter
+
+```javascript
+const EventEmitter = require("events");
+```
+
+---
+
+## Creating an EventEmitter Object
+
+```javascript
+const EventEmitter = require("events");
+
+const myEmitter = new EventEmitter();
+```
+
+Here:
+
+- `events` is the built-in Node.js module.
+- `EventEmitter` is the class exported by the `events` module.
+- `myEmitter` is an object (instance) of the `EventEmitter` class.
+
+---
+
+## Registering an Event Listener
+
+The `on()` method is used to listen for an event.
+
+```javascript
+myEmitter.on("greet", () => {
+  console.log("Hello!");
+});
+```
+
+Syntax:
+
+```javascript
+emitter.on(eventName, callbackFunction);
+```
+
+---
+
+## Emitting an Event
+
+The `emit()` method triggers an event.
+
+```javascript
+myEmitter.emit("greet");
+```
+
+Output:
+
+```text
+Hello!
+```
+
+---
+
+## Passing Arguments
+
+Arguments can be passed while emitting an event.
+
+```javascript
+myEmitter.on("stock", (quantity) => {
+  console.log(`${quantity} items available`);
+});
+
+myEmitter.emit("stock", 7);
+```
+
+Output:
+
+```text
+7 items available
+```
+
+---
+
+## Multiple Listeners
+
+Multiple listeners can listen to the same event.
+
+```javascript
+myEmitter.on("sale", () => {
+  console.log("Listener 1");
+});
+
+myEmitter.on("sale", () => {
+  console.log("Listener 2");
+});
+
+myEmitter.emit("sale");
+```
+
+Output:
+
+```text
+Listener 1
+Listener 2
+```
+
+The listeners execute in the order they were registered.
+
+---
+
+# EventEmitter and the HTTP Module
+
+The `http` module itself does **not** inherit from `EventEmitter`.
+
+Instead, the **Server class** inside the `http` module inherits from `EventEmitter`.
+
+```text
+events module
+      │
+      ▼
+EventEmitter class
+      ▲
+      │ extends
+      │
+http.Server class
+      ▲
+      │
+server object
+```
+
+---
+
+## Why can we use `server.on()`?
+
+When we create a server:
+
+```javascript
+const http = require("http");
+
+const server = http.createServer();
+```
+
+`server` is an object of the `Server` class.
+
+Since `Server` extends `EventEmitter`, the server object automatically has methods such as:
+
+- `on()`
+- `emit()`
+- `once()`
+- `removeListener()`
+
+---
+
+## Listening for HTTP Requests
+
+```javascript
+const http = require("http");
+
+const server = http.createServer();
+
+server.on("request", (req, res) => {
+  res.end("Hello from Node.js");
+});
+
+server.listen(8000);
+```
+
+When a client sends an HTTP request, Node.js internally emits the `"request"` event.
+
+Conceptually, it behaves like this:
+
+```javascript
+server.emit("request", req, res);
+```
+
+You never need to call `emit("request")` yourself.
+
+The HTTP module automatically emits the event whenever a request arrives.
+
+---
+
+# Common EventEmitter Methods
+
+| Method                 | Description                               |
+| ---------------------- | ----------------------------------------- |
+| `on()`                 | Registers an event listener.              |
+| `emit()`               | Triggers an event.                        |
+| `once()`               | Registers a listener that runs only once. |
+| `removeListener()`     | Removes a specific listener.              |
+| `removeAllListeners()` | Removes all listeners for an event.       |
+
+---
+
+# Important Notes
+
+- `EventEmitter` is a class.
+- `events` is the built-in Node.js module.
+- `http.Server` extends `EventEmitter`.
+- The callback passed to `server.on("request")` executes whenever Node.js emits the `"request"` event.
+- `server.listen()` **does not** emit the `"request"` event. It only starts listening for incoming connections.
+- The `"request"` event is emitted automatically when a client (browser, Postman, curl, etc.) sends an HTTP request
